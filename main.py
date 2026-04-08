@@ -7,7 +7,9 @@ from image_processing import (is_grayscale,
                               convert_to_grayscale,
                               apply_median_filter,
                               show_side_by_side_cl,
-                              open_image_from_url)
+                              open_image_from_url,
+                              calculate_average_pixel_value,
+                              calculate_brightness)
 
 from PIL import Image
 import requests
@@ -35,7 +37,9 @@ if __name__ == '__main__':
         
         im = convert_to_grayscale(original_image)
         im = apply_median_filter(im)
-
+        
+        avg_pixel_value = calculate_average_pixel_value(im)
+        print(f'Avg brightness = {calculate_brightness(avg_pixel_value)}%')
         show_side_by_side_cl(original_image, im)
 
         user_input = input('Press a key to get another image or "q" to exit: ')

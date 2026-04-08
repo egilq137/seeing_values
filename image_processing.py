@@ -29,9 +29,17 @@ def apply_median_filter(image: Image, size: int = 7) -> Image:
     return image.filter(ImageFilter.MedianFilter(size=size))
 
 
-def calculate_brightness(value: int) -> float:
+def calculate_brightness(value: float) -> float:
     MAX_VALUE = 255
-    return value / MAX_VALUE * 100
+    brightness = value / MAX_VALUE * 100
+    return int(round(brightness))
+
+
+def calculate_average_pixel_value(image: Image) -> float:
+    """ turns an image into grayscale and calculates the average pixel value """
+    im = convert_to_grayscale(image)
+    pixels = list(im.get_flattened_data())
+    return sum(pixels) / len(pixels)
 
 
 def show_side_by_side_cl(image1: Image, image2: Image):
