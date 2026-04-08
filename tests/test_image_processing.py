@@ -2,7 +2,8 @@ import PIL
 from PIL import Image
 from image_processing import (loads_image,
                               is_grayscale,
-                              convert_to_grayscale)
+                              convert_to_grayscale,
+                              calculate_brightness)
 import pytest
 
 @pytest.fixture
@@ -25,3 +26,15 @@ def test_converts_color_image_into_grayscale(color_image):
     grayscale_image = convert_to_grayscale(color_image)
     assert grayscale_image.mode == 'L'
 
+
+def test_calculate_brightness_percentage_pure_black():
+    assert calculate_brightness(0) == 0
+
+
+def test_calculate_brightness_percentage_pure_white():
+    assert calculate_brightness(255) == 100
+
+
+def test_calculate_brightness_percentage_middle_gray():
+    middle_gray = 255 / 2
+    assert calculate_brightness(middle_gray) == 50

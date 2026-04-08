@@ -29,6 +29,11 @@ def apply_median_filter(image: Image, size: int = 7) -> Image:
     return image.filter(ImageFilter.MedianFilter(size=size))
 
 
+def calculate_brightness(value: int) -> float:
+    MAX_VALUE = 255
+    return value / MAX_VALUE * 100
+
+
 def show_side_by_side_cl(image1: Image, image2: Image):
     zones = 10
     gradient = np.linspace(0, 1, zones).reshape(1, -1)
