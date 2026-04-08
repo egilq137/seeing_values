@@ -1,0 +1,32 @@
+this app should:
+
+* retrieve a random image from wikiart: one way it could work: grabbing the full
+list of artists in the server, pick a random artist. Then, using the 
+'PaintingsByArtists' endpoint, pick a random painting.
+
+* retrieve full list of artists: 
+    - url: http://www.wikiart.org/en/App/Artist/AlphabetJson?v=new&inPublicDomain=true
+    - returns list[dict]:
+                [
+        {
+            "contentId": 335710,
+            "artistName": "3D",
+            "url": "3d",
+            "lastNameFirst": "3D",
+            "birthDay": "/Date(-124502400000)/",
+            "deathDay": "/Date(253402300799999)/",
+            "birthDayAsString": "January 21, 1966",
+            "deathDayAsString": null,
+            "image": "https://uploads3.wikiart.org/images/3d.jpg!Portrait.jpg",
+            "wikipediaUrl": "http://en.wikipedia.org/wiki/Robert_Del_Naja",
+            "dictonaries": [
+            1485,
+            375
+            ]
+        },
+    - I care about 'url' and 'artistName'
+
+* picking up a random artist:
+    - from the full list of artists in get_list...(), pick a random one
+    - decomposed further:
+        - from full list of artists, pick one by index
