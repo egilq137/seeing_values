@@ -4,10 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import requests
 from io import BytesIO
-from enum import Enum
+from enum import IntEnum
 from dataclasses import dataclass
 
-class Zone(Enum):
+class Zone(IntEnum):
     I = 1
     II = 2
     III = 3
@@ -19,21 +19,25 @@ class Zone(Enum):
     IX = 9
 
 
-class ReferenceValue(Enum):
+class ReferenceValue(IntEnum):
     Black = 0
     MiddleGray = 128
     White = 255
 
-@dataclass
-class PixelValue:
-    value: int
 
-    def __post_init__(self):
-        if not ReferenceValue.Black <= self.value <= ReferenceValue.White:
+class PixelValue(int):
+    """ Subclass of int such that they can be treated the same with 
+    ReferenceValue"""
+    def __new__(cls, value):
+        if not ReferenceValue.Black <= value <= ReferenceValue.White:
             raise ValueError(
-                f"Pixel value should be between {ReferenceValue.Black.value} \
-                    and {ReferenceValue.White.value}")
-        
+                f"Pixel value should be between {ReferenceValue.Black} \
+                    and {ReferenceValue.White}")
+        return super().__new__(cls, value)
+
+
+ZONE_LIMITS = {z: ReferenceValue.White * z / len(Zone) for z in Zone}
+
 
 def loads_image(filepath: Path) -> Image:
     return Image.open(filepath)
@@ -65,15 +69,21 @@ def calculate_brightness(value: float) -> float:
 
 
 def calculate_average_pixel_value(image: Image) -> float:
-    """ turns an image into grayscale and calculates the average pixel value """
+    """ Turns an image into grayscale and calculates the average pixel value """
     im = convert_to_grayscale(image)
     pixels = list(im.get_flattened_data())
     return sum(pixels) / len(pixels)
 
 
 def get_zone_from_pixel_value(value: PixelValue) -> Zone:
-    return Zone.I if value == 0 else Zone.IX
+    """ Returns the Zone to which a pixel belongs based on its value"""
+    return next(z for z in Zone if value <= ZONE_LIMITS[z])
 
+
+def is_pixel_in_zone(value: PixelValue, zone: Zone) -> bool:
+    """ Determines whether a pixel is in the given zone"""
+    pixel_zone = get_zone_from_pixel_value(value)
+    return pixel_zone == zone
 
 
 def show_side_by_side_cl(image1: Image, image2: Image):
@@ -126,3 +136,4 @@ if __name__ == '__main__':
 
     show_side_by_side_cl(original_image, im)
     
+    get_zone_from_pixel_value(20)

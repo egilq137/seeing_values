@@ -2,12 +2,14 @@ import PIL
 from PIL import Image
 from image_processing import (Zone,
                               ReferenceValue,
+                              PixelValue,
                               loads_image,
                               is_grayscale,
                               convert_to_grayscale,
                               calculate_brightness,
                               calculate_average_pixel_value, 
-                              get_zone_from_pixel_value)
+                              get_zone_from_pixel_value,
+                              is_pixel_in_zone)
 import pytest
 import random
 
@@ -34,15 +36,15 @@ def test_converts_color_image_into_grayscale(color_image):
 
 
 def test_calculate_brightness_percentage_pure_black():
-    assert calculate_brightness(ReferenceValue.Black.value) == 0
+    assert calculate_brightness(ReferenceValue.Black) == 0
 
 
 def test_calculate_brightness_percentage_pure_white():
-    assert calculate_brightness(ReferenceValue.White.value) == 100
+    assert calculate_brightness(ReferenceValue.White) == 100
 
 
 def test_calculate_brightness_percentage_middle_gray():
-    assert calculate_brightness(ReferenceValue.MiddleGray.value) == 50
+    assert calculate_brightness(ReferenceValue.MiddleGray) == 50
 
 
 def test_get_average_pixel_value_from_gray_image():
@@ -62,13 +64,38 @@ def test_get_average_pixel_value_from_gray_image():
 
 
 def test_pure_black_is_in_zone_one():
-    assert get_zone_from_pixel_value(ReferenceValue.Black.value) == Zone.I
+    assert get_zone_from_pixel_value(ReferenceValue.Black) == Zone.I
 
 
 def test_pure_white_is_in_zone_nine():
-    assert get_zone_from_pixel_value(ReferenceValue.White.value) == Zone.IX
+    assert get_zone_from_pixel_value(ReferenceValue.White) == Zone.IX
 
 
-# def test_middle_gray_is_in_zone_five():
+def test_middle_gray_is_in_zone_five():
+    assert get_zone_from_pixel_value(ReferenceValue.MiddleGray) == Zone.V
 
-    
+
+def test_pixel_value_one_is_in_zone_one():
+    assert get_zone_from_pixel_value(PixelValue(1)) == Zone.I
+
+
+def test_pixel_value_two_fifty_four_is_in_zone_nine():
+    assert get_zone_from_pixel_value(PixelValue(254)) == Zone.IX
+
+
+def test_pixel_value_thirty_is_in_zone_two():
+    assert get_zone_from_pixel_value(PixelValue(30)) == Zone.II
+
+
+def test_keep_black_if_zone_is_one():
+    assert is_pixel_in_zone(ReferenceValue.Black, Zone.I) == True
+
+
+def test_keep_white_if_zone_is_nine():
+    assert is_pixel_in_zone(ReferenceValue.White, Zone.IX) == True
+
+
+def test_dont_keep_white_if_zone_is_not_nine():
+    zones_without_nine = list(set(Zone) - {Zone.IX})
+    random_zone = random.choice(zones_without_nine)
+    assert is_pixel_in_zone(ReferenceValue.White, random_zone) == False
