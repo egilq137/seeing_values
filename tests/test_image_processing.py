@@ -5,6 +5,7 @@ from image_processing import (Zone,
                               PixelValue,
                               loads_image,
                               is_grayscale,
+                              get_pixels,
                               convert_to_grayscale,
                               calculate_brightness,
                               calculate_average_pixel_value, 
@@ -110,18 +111,31 @@ def test_filter_image_by_zone_five(grayscale_image):
     """ Removes all pixels in an image that don't belong to the provided zone"""
     filter_zone = Zone.V
     filtered_image = filter_image_by_zone(grayscale_image, filter_zone)
-    filtered_image_pixels = list(filtered_image.get_flattened_data())
+    filtered_image_pixels = get_pixels(filtered_image)
+    
+    white_pixels = 0
     for pixel in filtered_image_pixels:
-        if not pixel == ReferenceValue.White:
+        if pixel == ReferenceValue.White:
+            white_pixels += 1
+            assert not is_pixel_in_zone(pixel, filter_zone)
+        else:
             assert is_pixel_in_zone(pixel, filter_zone)
+        
+    assert white_pixels != len(filtered_image_pixels)
 
 
-# def test_filter_image_by_zone_four_and_five(grayscale_image):
-#     """ Removes all pixels in an image that don't belong to the provided zone"""
-#     filter_zones = [Zone.IV, Zone.V]
-#     filtered_image = filter_image_by_zone(grayscale_image, filter_zones)
-#     filtered_image_pixels = list(filtered_image.get_flattened_data())
-#     for pixel in filtered_image_pixels:
-#         if not pixel == ReferenceValue.White:
-#             assert is_pixel_in_zone(pixel, filter_zones)
-
+def test_filter_image_by_zone_four_and_five(grayscale_image):
+    """ Removes all pixels in an image that don't belong to the provided zone"""
+    filter_zones = [Zone.IV, Zone.V]
+    filtered_image = filter_image_by_zone(grayscale_image, filter_zones)
+    filtered_image_pixels = list(filtered_image.get_flattened_data())
+    
+    white_pixels = 0
+    for pixel in filtered_image_pixels:
+        if pixel == ReferenceValue.White:
+            white_pixels += 1
+            assert not is_pixel_in_zone(pixel, filter_zones)
+        else:
+            assert is_pixel_in_zone(pixel, filter_zones)
+        
+    assert white_pixels != len(filtered_image_pixels)

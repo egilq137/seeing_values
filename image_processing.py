@@ -58,6 +58,9 @@ def convert_to_grayscale(image: Image) -> Image:
     return image.convert('L')
 
 
+def get_pixels(image: Image) -> list[PixelValue]:
+    return list(image.get_flattened_data())
+
 def apply_median_filter(image: Image, size: int = 7) -> Image:
     return image.filter(ImageFilter.MedianFilter(size=size))
 
@@ -71,7 +74,7 @@ def calculate_brightness(value: float) -> float:
 def calculate_average_pixel_value(image: Image) -> float:
     """ Turns an image into grayscale and calculates the average pixel value """
     im = convert_to_grayscale(image)
-    pixels = list(im.get_flattened_data())
+    pixels = get_pixels(im)
     return sum(pixels) / len(pixels)
 
 
@@ -80,18 +83,20 @@ def get_zone_from_pixel_value(value: PixelValue) -> Zone:
     return next(z for z in Zone if value <= ZONE_LIMITS[z])
 
 
-def is_pixel_in_zone(value: PixelValue, zone: Zone) -> bool:
+def is_pixel_in_zone(value: PixelValue, zones: Zone | list[Zone]) -> bool:
     """ Determines whether a pixel is in the given zone"""
+    if not isinstance(zones, list):
+        zones = [zones]
     pixel_zone = get_zone_from_pixel_value(value)
-    return pixel_zone == zone
+    return pixel_zone in zones
 
 
-def filter_image_by_zone(image: Image, zone: Zone) -> Image:
+def filter_image_by_zone(image: Image, zones: Zone | list[Zone]) -> Image:
     """ Keeps only the pixels from an image that belong to the given zone.
     If a pixel doesn't belong, it replaces its value with white"""
-    pixels = list(image.get_flattened_data())
+    pixels = get_pixels(image)
     
-    filtered_pixels = [pixel if is_pixel_in_zone(pixel, zone) 
+    filtered_pixels = [pixel if is_pixel_in_zone(pixel, zones) 
                        else ReferenceValue.White for pixel in pixels]
     
     filtered_image = Image.new('L', size=image.size)
@@ -100,7 +105,7 @@ def filter_image_by_zone(image: Image, zone: Zone) -> Image:
 
 
 def show_side_by_side_cl(image1: Image, image2: Image):
-    zones = 10
+    zones = len(Zone)
     gradient = np.linspace(
         ReferenceValue.Black.value, ReferenceValue.White.value, zones)\
         .reshape(1, -1)
@@ -149,5 +154,5 @@ if __name__ == '__main__':
 
     show_side_by_side_cl(original_image, im)
     
-    filtered_image = filter_image_by_zone(im, Zone.V)
+    filtered_image = filter_image_by_zone(im, [Zone.I, Zone.V, Zone.IX])
     show_side_by_side_cl(original_image, filtered_image)
