@@ -9,13 +9,19 @@ from image_processing import (Zone,
                               calculate_brightness,
                               calculate_average_pixel_value, 
                               get_zone_from_pixel_value,
-                              is_pixel_in_zone)
+                              is_pixel_in_zone, 
+                              filter_image_by_zone)
 import pytest
 import random
 
 @pytest.fixture
 def color_image():
     return loads_image('test_images/lakshmi.jpg')
+
+
+@pytest.fixture
+def grayscale_image(color_image):
+    return convert_to_grayscale(color_image)
 
 
 def test_loads_image_object(color_image):
@@ -30,8 +36,7 @@ def test_color_image_is_not_grayscale(color_image):
     assert is_grayscale(color_image) == False
 
 
-def test_converts_color_image_into_grayscale(color_image):
-    grayscale_image = convert_to_grayscale(color_image)
+def test_converts_color_image_into_grayscale(grayscale_image):
     assert grayscale_image.mode == 'L'
 
 
@@ -99,3 +104,24 @@ def test_dont_keep_white_if_zone_is_not_nine():
     zones_without_nine = list(set(Zone) - {Zone.IX})
     random_zone = random.choice(zones_without_nine)
     assert is_pixel_in_zone(ReferenceValue.White, random_zone) == False
+
+
+def test_filter_image_by_zone_five(grayscale_image):
+    """ Removes all pixels in an image that don't belong to the provided zone"""
+    filter_zone = Zone.V
+    filtered_image = filter_image_by_zone(grayscale_image, filter_zone)
+    filtered_image_pixels = list(filtered_image.get_flattened_data())
+    for pixel in filtered_image_pixels:
+        if not pixel == ReferenceValue.White:
+            assert is_pixel_in_zone(pixel, filter_zone)
+
+
+# def test_filter_image_by_zone_four_and_five(grayscale_image):
+#     """ Removes all pixels in an image that don't belong to the provided zone"""
+#     filter_zones = [Zone.IV, Zone.V]
+#     filtered_image = filter_image_by_zone(grayscale_image, filter_zones)
+#     filtered_image_pixels = list(filtered_image.get_flattened_data())
+#     for pixel in filtered_image_pixels:
+#         if not pixel == ReferenceValue.White:
+#             assert is_pixel_in_zone(pixel, filter_zones)
+

@@ -86,6 +86,19 @@ def is_pixel_in_zone(value: PixelValue, zone: Zone) -> bool:
     return pixel_zone == zone
 
 
+def filter_image_by_zone(image: Image, zone: Zone) -> Image:
+    """ Keeps only the pixels from an image that belong to the given zone.
+    If a pixel doesn't belong, it replaces its value with white"""
+    pixels = list(image.get_flattened_data())
+    
+    filtered_pixels = [pixel if is_pixel_in_zone(pixel, zone) 
+                       else ReferenceValue.White for pixel in pixels]
+    
+    filtered_image = Image.new('L', size=image.size)
+    filtered_image.putdata(filtered_pixels)
+    return filtered_image
+
+
 def show_side_by_side_cl(image1: Image, image2: Image):
     zones = 10
     gradient = np.linspace(
@@ -136,4 +149,5 @@ if __name__ == '__main__':
 
     show_side_by_side_cl(original_image, im)
     
-    get_zone_from_pixel_value(20)
+    filtered_image = filter_image_by_zone(im, Zone.V)
+    show_side_by_side_cl(original_image, filtered_image)
