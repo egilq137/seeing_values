@@ -1,10 +1,13 @@
 import PIL
 from PIL import Image
-from image_processing import (loads_image,
+from image_processing import (Zone,
+                              ReferenceValue,
+                              loads_image,
                               is_grayscale,
                               convert_to_grayscale,
                               calculate_brightness,
-                              calculate_average_pixel_value)
+                              calculate_average_pixel_value, 
+                              get_zone_from_pixel_value)
 import pytest
 import random
 
@@ -31,18 +34,15 @@ def test_converts_color_image_into_grayscale(color_image):
 
 
 def test_calculate_brightness_percentage_pure_black():
-    pure_black = 0
-    assert calculate_brightness(pure_black) == 0
+    assert calculate_brightness(ReferenceValue.Black.value) == 0
 
 
 def test_calculate_brightness_percentage_pure_white():
-    pure_white = 255
-    assert calculate_brightness(pure_white) == 100
+    assert calculate_brightness(ReferenceValue.White.value) == 100
 
 
 def test_calculate_brightness_percentage_middle_gray():
-    middle_gray = 255 / 2
-    assert calculate_brightness(middle_gray) == 50
+    assert calculate_brightness(ReferenceValue.MiddleGray.value) == 50
 
 
 def test_get_average_pixel_value_from_gray_image():
@@ -59,4 +59,16 @@ def test_get_average_pixel_value_from_gray_image():
     r_pixel = gray_image_single_channel.getpixel((r_x, r_y))
 
     assert calculate_average_pixel_value(gray_image) == r_pixel
+
+
+def test_pure_black_is_in_zone_one():
+    assert get_zone_from_pixel_value(ReferenceValue.Black.value) == Zone.I
+
+
+def test_pure_white_is_in_zone_nine():
+    assert get_zone_from_pixel_value(ReferenceValue.White.value) == Zone.IX
+
+
+# def test_middle_gray_is_in_zone_five():
+
     

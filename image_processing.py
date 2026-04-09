@@ -4,7 +4,36 @@ import numpy as np
 import matplotlib.pyplot as plt
 import requests
 from io import BytesIO
+from enum import Enum
+from dataclasses import dataclass
 
+class Zone(Enum):
+    I = 1
+    II = 2
+    III = 3
+    IV = 4
+    V = 5
+    VI = 6
+    VII = 7
+    VIII = 8
+    IX = 9
+
+
+class ReferenceValue(Enum):
+    Black = 0
+    MiddleGray = 128
+    White = 255
+
+@dataclass
+class PixelValue:
+    value: int
+
+    def __post_init__(self):
+        if not ReferenceValue.Black <= self.value <= ReferenceValue.White:
+            raise ValueError(
+                f"Pixel value should be between {ReferenceValue.Black.value} \
+                    and {ReferenceValue.White.value}")
+        
 
 def loads_image(filepath: Path) -> Image:
     return Image.open(filepath)
@@ -30,7 +59,7 @@ def apply_median_filter(image: Image, size: int = 7) -> Image:
 
 
 def calculate_brightness(value: float) -> float:
-    MAX_VALUE = 255
+    MAX_VALUE = ReferenceValue.White.value
     brightness = value / MAX_VALUE * 100
     return int(round(brightness))
 
@@ -42,9 +71,16 @@ def calculate_average_pixel_value(image: Image) -> float:
     return sum(pixels) / len(pixels)
 
 
+def get_zone_from_pixel_value(value: PixelValue) -> Zone:
+    return Zone.I if value == 0 else Zone.IX
+
+
+
 def show_side_by_side_cl(image1: Image, image2: Image):
     zones = 10
-    gradient = np.linspace(0, 1, zones).reshape(1, -1)
+    gradient = np.linspace(
+        ReferenceValue.Black.value, ReferenceValue.White.value, zones)\
+        .reshape(1, -1)
 
     fig, axes = plt.subplots(2, 2, height_ratios=[10, 1], figsize=(10, 6))
 
