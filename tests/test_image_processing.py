@@ -81,6 +81,10 @@ def test_middle_gray_is_in_zone_five():
     assert get_zone_from_pixel_value(ReferenceValue.MiddleGray) == Zone.V
 
 
+def test_lower_limit_of_middle_gray_is_in_zone_five():
+    assert get_zone_from_pixel_value(PixelValue(Zone.limits()[Zone.V][0])) == Zone.V
+
+
 def test_pixel_value_one_is_in_zone_zero():
     assert get_zone_from_pixel_value(PixelValue(1)) == Zone.O
 
@@ -101,9 +105,9 @@ def test_keep_white_if_zone_is_ten():
     assert is_pixel_in_zone(ReferenceValue.White, Zone.X) == True
 
 
-def test_dont_keep_white_if_zone_is_not_nine():
-    zones_without_nine = list(set(Zone) - {Zone.IX})
-    random_zone = random.choice(zones_without_nine)
+def test_dont_keep_white_if_zone_is_not_ten():
+    zones_without_ten = list(set(Zone) - {Zone.X})
+    random_zone = random.choice(zones_without_ten)
     assert is_pixel_in_zone(ReferenceValue.White, random_zone) == False
 
 

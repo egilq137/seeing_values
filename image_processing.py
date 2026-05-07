@@ -1,3 +1,4 @@
+import functools
 from pathlib import Path
 from PIL import Image, ImageFilter
 import numpy as np
@@ -21,13 +22,15 @@ class Zone(IntEnum):
     X = 10
 
     @classmethod
+    @functools.cache
     def limits(cls) -> dict['Zone', tuple[int, int]]:
         """ Returns the limits of each zone as a dictionary where the keys are
         the zones and the values are tuples of (lower_limit, upper_limit)"""
         n = len(cls)
         step = ReferenceValue.White / (n - 1)
         half = step / 2
-        result = {z: (round(i * step - half), round(i * step + half)) 
+        # drop one unit in the upper limit to avoid overlap between zones
+        result = {z: (round(i * step - half), round(i * step + half) - 1) 
                   for i, z in enumerate(cls)}
         
         # adjust limits for zone 0 (black) and zone X (white), because they 
@@ -95,7 +98,9 @@ def calculate_average_pixel_value(image: Image) -> float:
 
 def get_zone_from_pixel_value(value: PixelValue) -> Zone:
     """ Returns the Zone to which a pixel belongs based on its value"""
-    return next(z for z in Zone if Zone.limits()[z][0] <= value <= Zone.limits()[z][1])
+    # cache zone limits to avoid recalculating them every time
+    limits = Zone.limits()
+    return next(z for z in Zone if limits[z][0] <= value <= limits[z][1])
 
 
 def is_pixel_in_zone(value: PixelValue, zones: Zone | list[Zone]) -> bool:
@@ -109,10 +114,16 @@ def is_pixel_in_zone(value: PixelValue, zones: Zone | list[Zone]) -> bool:
 def filter_image_by_zone(image: Image, zones: Zone | list[Zone]) -> Image:
     """ Keeps only the pixels from an image that belong to the given zone.
     If a pixel doesn't belong, it replaces its value with white"""
-    pixels = get_pixels(image)
+    if not isinstance(zones, list):
+        zones = [zones]
     
-    filtered_pixels = [pixel if is_pixel_in_zone(pixel, zones) 
-                       else ReferenceValue.White for pixel in pixels]
+    limits = Zone.limits()
+
+    def keep(pixel: PixelValue) -> PixelValue:
+        return pixel if any(limits[z][0] <= pixel <= limits[z][1] 
+                            for z in zones) else ReferenceValue.White
+    
+    filtered_pixels = [keep(pixel) for pixel in get_pixels(image)]
     
     filtered_image = Image.new('L', size=image.size)
     filtered_image.putdata(filtered_pixels)
@@ -135,11 +146,11 @@ def show_side_by_side_cl(image1: Image, image2: Image):
 
     for ax in axes[1]:
         ax.imshow(gradient, cmap='gray', aspect='auto')
-        for i, label in enumerate(Zone):
+        for i, zone in enumerate(Zone):
             ax.text(i, 0, 
-                    label.name,
+                    zone.name,
                       ha='center', va='center',
-                     color='white' if ZONE_LIMITS[label.value] <= ReferenceValue.MiddleGray else 'black', 
+                     color='white' if Zone.limits()[zone][0] <= ReferenceValue.MiddleGray else 'black', 
                      fontsize=18)
         for spine in ax.spines.values():
             spine.set_visible(True)
@@ -175,5 +186,6 @@ if __name__ == '__main__':
 
     show_side_by_side_cl(original_image, im)
     
-    filtered_image = filter_image_by_zone(convert_to_grayscale(original_image), Zone.V)
-    show_side_by_side_cl(original_image, filtered_image)
+    for zone in Zone:
+        filtered_image = filter_image_by_zone(im, zone)
+        show_side_by_side_cl(original_image, filtered_image)
