@@ -69,36 +69,36 @@ def test_get_average_pixel_value_from_gray_image():
     assert calculate_average_pixel_value(gray_image) == r_pixel
 
 
-def test_pure_black_is_in_zone_one():
-    assert get_zone_from_pixel_value(ReferenceValue.Black) == Zone.I
+def test_pure_black_is_in_zone_zero():
+    assert get_zone_from_pixel_value(ReferenceValue.Black) == Zone.O
 
 
-def test_pure_white_is_in_zone_nine():
-    assert get_zone_from_pixel_value(ReferenceValue.White) == Zone.IX
+def test_pure_white_is_in_zone_ten():
+    assert get_zone_from_pixel_value(ReferenceValue.White) == Zone.X
 
 
 def test_middle_gray_is_in_zone_five():
     assert get_zone_from_pixel_value(ReferenceValue.MiddleGray) == Zone.V
 
 
-def test_pixel_value_one_is_in_zone_one():
-    assert get_zone_from_pixel_value(PixelValue(1)) == Zone.I
+def test_pixel_value_one_is_in_zone_zero():
+    assert get_zone_from_pixel_value(PixelValue(1)) == Zone.O
 
 
-def test_pixel_value_two_fifty_four_is_in_zone_nine():
-    assert get_zone_from_pixel_value(PixelValue(254)) == Zone.IX
+def test_pixel_value_two_fifty_four_is_in_zone_ten():
+    assert get_zone_from_pixel_value(PixelValue(254)) == Zone.X
 
 
-def test_pixel_value_thirty_is_in_zone_two():
-    assert get_zone_from_pixel_value(PixelValue(30)) == Zone.II
+def test_pixel_value_thirty_is_in_zone_one():
+    assert get_zone_from_pixel_value(PixelValue(30)) == Zone.I
 
 
 def test_keep_black_if_zone_is_one():
-    assert is_pixel_in_zone(ReferenceValue.Black, Zone.I) == True
+    assert is_pixel_in_zone(ReferenceValue.Black, Zone.O) == True
 
 
-def test_keep_white_if_zone_is_nine():
-    assert is_pixel_in_zone(ReferenceValue.White, Zone.IX) == True
+def test_keep_white_if_zone_is_ten():
+    assert is_pixel_in_zone(ReferenceValue.White, Zone.X) == True
 
 
 def test_dont_keep_white_if_zone_is_not_nine():

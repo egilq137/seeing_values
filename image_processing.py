@@ -8,6 +8,7 @@ from enum import IntEnum
 from dataclasses import dataclass
 
 class Zone(IntEnum):
+    O = 0
     I = 1
     II = 2
     III = 3
@@ -17,7 +18,24 @@ class Zone(IntEnum):
     VII = 7
     VIII = 8
     IX = 9
+    X = 10
 
+    @classmethod
+    def limits(cls) -> dict['Zone', tuple[int, int]]:
+        """ Returns the limits of each zone as a dictionary where the keys are
+        the zones and the values are tuples of (lower_limit, upper_limit)"""
+        n = len(cls)
+        step = ReferenceValue.White / (n - 1)
+        half = step / 2
+        result = {z: (round(i * step - half), round(i * step + half)) 
+                  for i, z in enumerate(cls)}
+        
+        # adjust limits for zone 0 (black) and zone X (white), because they 
+        # don't have a full step on one side
+        result[cls.O] = (ReferenceValue.Black, result[cls.O][1])
+        result[cls.X] = (result[cls.X][0], ReferenceValue.White)
+        
+        return result
 
 class ReferenceValue(IntEnum):
     Black = 0
@@ -34,9 +52,6 @@ class PixelValue(int):
                 f"Pixel value should be between {ReferenceValue.Black} \
                     and {ReferenceValue.White}")
         return super().__new__(cls, value)
-
-
-ZONE_LIMITS = {z: ReferenceValue.White * z / len(Zone) for z in Zone}
 
 
 def loads_image(filepath: Path) -> Image:
@@ -80,7 +95,7 @@ def calculate_average_pixel_value(image: Image) -> float:
 
 def get_zone_from_pixel_value(value: PixelValue) -> Zone:
     """ Returns the Zone to which a pixel belongs based on its value"""
-    return next(z for z in Zone if value <= ZONE_LIMITS[z])
+    return next(z for z in Zone if Zone.limits()[z][0] <= value <= Zone.limits()[z][1])
 
 
 def is_pixel_in_zone(value: PixelValue, zones: Zone | list[Zone]) -> bool:
@@ -120,6 +135,12 @@ def show_side_by_side_cl(image1: Image, image2: Image):
 
     for ax in axes[1]:
         ax.imshow(gradient, cmap='gray', aspect='auto')
+        for i, label in enumerate(Zone):
+            ax.text(i, 0, 
+                    label.name,
+                      ha='center', va='center',
+                     color='white' if ZONE_LIMITS[label.value] <= ReferenceValue.MiddleGray else 'black', 
+                     fontsize=18)
         for spine in ax.spines.values():
             spine.set_visible(True)
             spine.set_edgecolor('#aaaaaa')
@@ -146,7 +167,7 @@ def show_side_by_side_cl(image1: Image, image2: Image):
 
 if __name__ == '__main__':
     
-    filepath = 'test_images/lakshmi.jpg'
+    filepath = 'test_images/zone_system.jpg'
     original_image = loads_image(filepath)
     if not is_grayscale(original_image):
         im = convert_to_grayscale(original_image)
@@ -154,5 +175,5 @@ if __name__ == '__main__':
 
     show_side_by_side_cl(original_image, im)
     
-    filtered_image = filter_image_by_zone(im, [Zone.I, Zone.V, Zone.IX])
+    filtered_image = filter_image_by_zone(convert_to_grayscale(original_image), Zone.V)
     show_side_by_side_cl(original_image, filtered_image)
